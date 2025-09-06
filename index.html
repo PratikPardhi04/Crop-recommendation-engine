@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Crop Recommendation</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <div class="hh">
+        <h1>Crop Recommendation System</h1>
+        <form id="cropForm">
+          <label for="N">Nitrogen</label>
+          <input type="number" step="0.00000000001" name="N" placeholder="Nitrogen (N)" required>
+          
+          <label for="P">Phosphorus</label>
+          <input type="number" step="0.00000000001" name="P" placeholder="Phosphorus (P)" required>
+          
+          <label for="K">Potassium</label>
+          <input type="number" step="0.00000000001" name="K" placeholder="Potassium (K)" required>
+          
+          <label for="temperature">Temperature</label>
+          <input type="number" step="0.00000000001" name="temperature" placeholder="Temperature (°C)" required>
+          
+          <label for="humidity">Humidity</label>
+          <input type="number" step="0.00000000001" name="humidity" placeholder="Humidity (%)" required>
+          
+          <label for="ph">pH Level</label>
+          <input type="number" step="0.00000000001" name="ph" placeholder="pH Level" required>
+          
+          <label for="rainfall">Rainfall</label>
+          <input type="number" step="0.00000000001" name="rainfall" placeholder="Rainfall (mm)" required>
+          
+          <button type="submit">Recommend Crop</button>
+        </form>
+
+        <div id="result"></div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('cropForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const formData = new FormData(e.target);
+      const data = Object.fromEntries(formData.entries());
+
+      // Convert all values to numbers
+      for (let key in data) {
+        data[key] = parseFloat(data[key]);
+      }
+
+      document.getElementById('result').innerHTML = "🔍 Predicting...";
+
+      try {
+        const res = await fetch('/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        const result = await res.json();
+
+        document.getElementById('result').innerHTML = result.prediction
+          ? `<h2>🌾 Recommended Crop: ${result.prediction}</h2><p>📊 Confidence: ${result.confidence}%</p>`
+          : `<h2>❌ Error: ${result.error || "Unknown error"}</h2>`;
+          
+      } catch (err) {
+        document.getElementById('result').innerHTML = `<h2>❌ Error: ${err.message}</h2>`;
+      }
+    });
+  </script>
+</body>
+</html>
